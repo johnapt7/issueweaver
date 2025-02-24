@@ -1,8 +1,9 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -27,6 +28,7 @@ export function IssueList() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchIssues = async () => {
@@ -79,6 +81,19 @@ export function IssueList() {
     fetchIssues();
   }, []);
 
+  const filteredIssues = issues.filter((issue) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      issue.title.toLowerCase().includes(searchLower) ||
+      issue.repository.toLowerCase().includes(searchLower) ||
+      issue.status.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredIssues.length / ISSUES_PER_PAGE);
+  const startIndex = (currentPage - 1) * ISSUES_PER_PAGE;
+  const displayedIssues = filteredIssues.slice(startIndex, startIndex + ISSUES_PER_PAGE);
+
   if (loading) {
     return (
       <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
@@ -89,19 +104,34 @@ export function IssueList() {
     );
   }
 
-  const totalPages = Math.ceil(issues.length / ISSUES_PER_PAGE);
-  const startIndex = (currentPage - 1) * ISSUES_PER_PAGE;
-  const displayedIssues = issues.slice(startIndex, startIndex + ISSUES_PER_PAGE);
-
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
       <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
         Recent Issues
       </h2>
+
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search issues by title, repository, or status..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
+            className="pl-9 w-full"
+          />
+        </div>
+      </div>
+
       <div className="space-y-4">
-        {issues.length === 0 ? (
+        {filteredIssues.length === 0 ? (
           <p className="text-center text-gray-600 dark:text-gray-400">
-            No issues found. Add a repository to get started.
+            {issues.length === 0
+              ? "No issues found. Add a repository to get started."
+              : "No issues match your search."}
           </p>
         ) : (
           <>
