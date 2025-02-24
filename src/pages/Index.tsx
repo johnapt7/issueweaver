@@ -1,19 +1,19 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IssueCreator } from "@/components/IssueCreator";
 import { IssueList } from "@/components/IssueList";
+import { AddReposDialog } from "@/components/AddReposDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Github } from "lucide-react";
 
 export default function Index() {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleGitHubTokenSubmit = () => {
-    toast({
-      title: "Connecting to GitHub",
-      description: "Please enter your GitHub Personal Access Token.",
-    });
+    setDialogOpen(true);
   };
 
   return (
@@ -36,18 +36,19 @@ export default function Index() {
               Welcome to IssueWeaver
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Connect with GitHub using your Personal Access Token
+              Add the repositories you want to manage
             </p>
             <Button
               onClick={handleGitHubTokenSubmit}
               className="bg-[#24292F] hover:bg-[#24292F]/90 text-white"
             >
               <Github className="mr-2 h-4 w-4" />
-              Add GitHub Token
+              Add Repository
             </Button>
           </div>
         </Card>
       </div>
+      <AddReposDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
