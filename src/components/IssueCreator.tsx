@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -12,15 +12,9 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Bold, Italic, List, ListOrdered, Link, Eye, EyeOff } from "lucide-react";
-import MarkdownIt from "markdown-it";
-
-const md = new MarkdownIt();
-
-interface Repository {
-  owner: string;
-  repo: string;
-}
+import { Loader2 } from "lucide-react";
+import { DescriptionField } from "./issue/DescriptionField";
+import { Repository } from "@/types/github";
 
 export function IssueCreator() {
   const [title, setTitle] = useState("");
@@ -35,57 +29,6 @@ export function IssueCreator() {
     const repos = JSON.parse(localStorage.getItem("repos") || "[]");
     setRepositories(repos);
   }, []);
-
-  const insertText = (before: string, after: string = "") => {
-    const textarea = document.querySelector("textarea");
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = description.substring(start, end);
-    const newText = description.substring(0, start) + 
-                   before + selectedText + after + 
-                   description.substring(end);
-    
-    setDescription(newText);
-    
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + before.length,
-        end + before.length
-      );
-    }, 0);
-  };
-
-  const formatActions = [
-    {
-      icon: Bold,
-      label: "Bold",
-      action: () => insertText("**", "**"),
-    },
-    {
-      icon: Italic,
-      label: "Italic",
-      action: () => insertText("_", "_"),
-    },
-    {
-      icon: List,
-      label: "Bullet List",
-      action: () => insertText("- "),
-    },
-    {
-      icon: ListOrdered,
-      label: "Numbered List",
-      action: () => insertText("1. "),
-    },
-    {
-      icon: Link,
-      label: "Link",
-      action: () => insertText("[", "](url)"),
-    },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,61 +137,12 @@ export function IssueCreator() {
           />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Description
-            </label>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 border rounded-lg p-1">
-                {formatActions.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      action.action();
-                    }}
-                    title={action.label}
-                  >
-                    <action.icon className="h-4 w-4" />
-                  </Button>
-                ))}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsPreview(!isPreview);
-                }}
-                className="h-8"
-              >
-                {isPreview ? (
-                  <EyeOff className="h-4 w-4 mr-2" />
-                ) : (
-                  <Eye className="h-4 w-4 mr-2" />
-                )}
-                {isPreview ? "Edit" : "Preview"}
-              </Button>
-            </div>
-          </div>
-          {isPreview ? (
-            <div 
-              className="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background prose dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: md.render(description) }}
-            />
-          ) : (
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Write your issue description in Markdown..."
-              className="min-h-[200px] w-full font-mono"
-            />
-          )}
-        </div>
+        <DescriptionField
+          value={description}
+          onChange={setDescription}
+          isPreview={isPreview}
+          setIsPreview={setIsPreview}
+        />
 
         <div className="flex justify-end">
           <Button
