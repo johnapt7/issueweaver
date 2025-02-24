@@ -11,9 +11,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@gravity-ui/icons": "^2.13.0",
-    "@gravity-ui/markdown-editor": "^15.2.0",
-    "@gravity-ui/uikit": "^7.4.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
