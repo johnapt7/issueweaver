@@ -1,7 +1,7 @@
 
-import { Textarea } from "@/components/ui/textarea";
-import { MarkdownToolbar } from "./MarkdownToolbar";
-import { md, insertText } from "@/utils/markdown";
+import { useState } from "react";
+import { Editor } from "@gravity-ui/markdown-editor";
+import "@gravity-ui/markdown-editor/styles/bundle.css";
 
 interface DescriptionFieldProps {
   value: string;
@@ -10,41 +10,26 @@ interface DescriptionFieldProps {
   setIsPreview: (value: boolean) => void;
 }
 
-export function DescriptionField({ value, onChange, isPreview, setIsPreview }: DescriptionFieldProps) {
-  const handleFormatAction = (before: string, after?: string) => {
-    const textarea = document.querySelector("textarea");
-    const newText = insertText(value, textarea, before, after);
-    onChange(newText);
+export function DescriptionField({ value, onChange }: DescriptionFieldProps) {
+  const [editorValue, setEditorValue] = useState(value);
+
+  const handleChange = (newValue: string) => {
+    setEditorValue(newValue);
+    onChange(newValue);
   };
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          Description
-        </label>
-        <MarkdownToolbar
-          isPreview={isPreview}
-          onTogglePreview={(e) => {
-            e.preventDefault();
-            setIsPreview(!isPreview);
-          }}
-          onFormatAction={handleFormatAction}
-        />
-      </div>
-      {isPreview ? (
-        <div 
-          className="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background prose dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: md.render(value) }}
-        />
-      ) : (
-        <Textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Write your issue description in Markdown..."
-          className="min-h-[200px] w-full font-mono"
-        />
-      )}
+      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        Description
+      </label>
+      <Editor
+        value={editorValue}
+        onChange={handleChange}
+        placeholder="Write your issue description in Markdown..."
+        minHeight={200}
+        className="w-full"
+      />
     </div>
   );
 }
