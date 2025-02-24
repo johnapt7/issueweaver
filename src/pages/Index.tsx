@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IssueCreator } from "@/components/IssueCreator";
-import { IssueList } from "@/components/IssueList";
 import { AddReposDialog } from "@/components/AddReposDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Github } from "lucide-react";
+import { Layout } from "@/components/Layout";
 
 export default function Index() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <div>
@@ -50,10 +50,9 @@ export default function Index() {
           </Card>
 
           <IssueCreator />
-          <IssueList />
         </div>
       </div>
       <AddReposDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-    </div>
+    </Layout>
   );
 }
