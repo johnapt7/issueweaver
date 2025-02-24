@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
@@ -19,7 +20,7 @@ import { Repository } from "@/types/github";
 export function IssueCreator() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [repository, setRepository] = useState("");
+  const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -30,57 +31,81 @@ export function IssueCreator() {
     setRepositories(repos);
   }, []);
 
+  const createIssue = async (owner: string, repo: string) => {
+    const { data: { secret }, error: secretError } = await supabase.functions.invoke("get-secret", {
+      body: { name: "GITHUB_PAT" }
+    });
+    
+    if (secretError) throw secretError;
+
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/issues`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `token ${secret}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          body: description,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to create issue in ${owner}/${repo}`);
+    }
+
+    return response.json();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const [owner, repo] = repository.split("/");
-
-      const { data: { secret }, error: secretError } = await supabase.functions.invoke("get-secret", {
-        body: { name: "GITHUB_PAT" }
-      });
-      
-      if (secretError) throw secretError;
-
-      const response = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/issues`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `token ${secret}`,
-            Accept: "application/vnd.github.v3+json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title,
-            body: description,
-          }),
-        }
+      const results = await Promise.allSettled(
+        selectedRepos.map(async (repoPath) => {
+          const [owner, repo] = repoPath.split("/");
+          return createIssue(owner, repo);
+        })
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to create issue");
+      const successCount = results.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const failureCount = results.filter(
+        (result) => result.status === "rejected"
+      ).length;
+
+      if (successCount > 0) {
+        toast({
+          title: "Issues created",
+          description: `Successfully created issues in ${successCount} repositories${
+            failureCount > 0 ? ` (${failureCount} failed)` : ""
+          }`,
+        });
+
+        setTitle("");
+        setDescription("");
+        setSelectedRepos([]);
+      } else {
+        throw new Error("Failed to create any issues");
       }
 
-      const issue = await response.json();
-
-      toast({
-        title: "Issue created",
-        description: "Your issue has been successfully created!",
+      // Open successfully created issues in new tabs
+      results.forEach((result) => {
+        if (result.status === "fulfilled") {
+          window.open(result.value.html_url, "_blank");
+        }
       });
-
-      setTitle("");
-      setDescription("");
-      setRepository("");
-
-      // Open the created issue in a new tab
-      window.open(issue.html_url, "_blank");
     } catch (error) {
-      console.error("Error creating issue:", error);
+      console.error("Error creating issues:", error);
       toast({
         title: "Error",
-        description: "Failed to create issue. Please try again.",
+        description: "Failed to create issues. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -106,23 +131,34 @@ export function IssueCreator() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Repository
+            Repositories
           </label>
-          <Select value={repository} onValueChange={setRepository}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select repository" />
-            </SelectTrigger>
-            <SelectContent>
-              {repositories.map((repo) => (
-                <SelectItem
-                  key={`${repo.owner}/${repo.repo}`}
-                  value={`${repo.owner}/${repo.repo}`}
-                >
-                  {repo.owner}/{repo.repo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            {repositories.map((repo) => {
+              const repoPath = `${repo.owner}/${repo.repo}`;
+              return (
+                <div key={repoPath} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={repoPath}
+                    checked={selectedRepos.includes(repoPath)}
+                    onCheckedChange={(checked) => {
+                      setSelectedRepos(
+                        checked
+                          ? [...selectedRepos, repoPath]
+                          : selectedRepos.filter((r) => r !== repoPath)
+                      );
+                    }}
+                  />
+                  <label
+                    htmlFor={repoPath}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {repoPath}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -147,15 +183,15 @@ export function IssueCreator() {
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={submitting || !title || !description || !repository}
+            disabled={submitting || !title || !description || selectedRepos.length === 0}
           >
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Issue...
+                Creating Issues...
               </>
             ) : (
-              "Create Issue"
+              `Create Issue${selectedRepos.length > 1 ? 's' : ''}`
             )}
           </Button>
         </div>
