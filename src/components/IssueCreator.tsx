@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,25 +12,94 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
+
+interface Repository {
+  owner: string;
+  repo: string;
+}
 
 export function IssueCreator() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [repository, setRepository] = useState("");
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const repos = JSON.parse(localStorage.getItem("repos") || "[]");
+    setRepositories(repos);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here we would submit to GitHub API
-    console.log({ title, description, repository });
-    toast({
-      title: "Issue created",
-      description: "Your issue has been successfully created!",
-    });
-    setTitle("");
-    setDescription("");
-    setRepository("");
+    setSubmitting(true);
+
+    try {
+      const [owner, repo] = repository.split("/");
+
+      const { data: { secret }, error: secretError } = await supabase.functions.invoke("get-secret", {
+        body: { name: "GITHUB_PAT" }
+      });
+      
+      if (secretError) throw secretError;
+
+      const response = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/issues`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `token ${secret}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            body: description,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create issue");
+      }
+
+      const issue = await response.json();
+
+      toast({
+        title: "Issue created",
+        description: "Your issue has been successfully created!",
+      });
+
+      setTitle("");
+      setDescription("");
+      setRepository("");
+
+      // Open the created issue in a new tab
+      window.open(issue.html_url, "_blank");
+    } catch (error) {
+      console.error("Error creating issue:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create issue. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (repositories.length === 0) {
+    return (
+      <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
+        <div className="text-center text-gray-600 dark:text-gray-400">
+          Add a repository to start creating issues
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
@@ -47,9 +116,14 @@ export function IssueCreator() {
               <SelectValue placeholder="Select repository" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="repo1">Repository 1</SelectItem>
-              <SelectItem value="repo2">Repository 2</SelectItem>
-              <SelectItem value="repo3">Repository 3</SelectItem>
+              {repositories.map((repo) => (
+                <SelectItem
+                  key={`${repo.owner}/${repo.repo}`}
+                  value={`${repo.owner}/${repo.repo}`}
+                >
+                  {repo.owner}/{repo.repo}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -79,8 +153,18 @@ export function IssueCreator() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={!title || !description || !repository}>
-            Create Issue
+          <Button
+            type="submit"
+            disabled={submitting || !title || !description || !repository}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Issue...
+              </>
+            ) : (
+              "Create Issue"
+            )}
           </Button>
         </div>
       </form>
