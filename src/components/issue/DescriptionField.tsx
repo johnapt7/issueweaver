@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Editor as MarkdownEditor } from "@gravity-ui/markdown-editor";
+import { MarkdownEditor } from "@gravity-ui/markdown-editor";
 import "@gravity-ui/markdown-editor/styles/styles.css";
 
 interface DescriptionFieldProps {
