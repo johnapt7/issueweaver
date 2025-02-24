@@ -64,7 +64,7 @@ export function IssueDetail({
         </div>
       </div>
 
-      <div className="prose dark:prose-invert max-w-none">
+      <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:text-gray-800 dark:prose-pre:text-gray-200 prose-headings:border-b prose-headings:border-gray-200 dark:prose-headings:border-gray-700 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 dark:prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic prose-strong:font-semibold prose-table:border-collapse prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-700 prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-700 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-th:p-2 prose-td:p-2">
         {body ? (
           <div dangerouslySetInnerHTML={{ __html: md.render(body || '') }} />
         ) : (
