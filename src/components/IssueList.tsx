@@ -1,9 +1,7 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
-import { Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -12,82 +10,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface Issue {
-  id: number;
-  title: string;
-  repository: string;
-  status: string;
-  created: string;
-  html_url: string;
-}
+import { IssueCard } from "./issue/IssueCard";
+import { IssueFilters } from "./issue/IssueFilters";
+import { useIssues } from "@/hooks/useIssues";
 
 const ISSUES_PER_PAGE = 5;
 
 export function IssueList() {
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { issues, loading } = useIssues();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<string>("all");
-
-  useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        const { data: { secret }, error: secretError } = await supabase.functions.invoke("get-secret", {
-          body: { name: "GITHUB_PAT" }
-        });
-        
-        if (secretError) throw secretError;
-
-        // Get repositories from localStorage
-        const repos = JSON.parse(localStorage.getItem("repos") || "[]");
-        const allIssues: Issue[] = [];
-
-        // Fetch issues for each repository
-        for (const { owner, repo } of repos) {
-          const response = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/issues?state=all`,
-            {
-              headers: {
-                Authorization: `token ${secret}`,
-                Accept: "application/vnd.github.v3+json",
-              },
-            }
-          );
-
-          if (!response.ok) throw new Error(`Error fetching issues for ${owner}/${repo}`);
-
-          const repoIssues = await response.json();
-          allIssues.push(
-            ...repoIssues.map((issue: any) => ({
-              id: issue.id,
-              title: issue.title,
-              repository: `${owner}/${repo}`,
-              status: issue.state,
-              created: new Date(issue.created_at).toLocaleDateString(),
-              html_url: issue.html_url,
-            }))
-          );
-        }
-
-        setIssues(allIssues);
-      } catch (error) {
-        console.error("Error fetching issues:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIssues();
-  }, []);
 
   const repositories = [...new Set(issues.map((issue) => issue.repository))];
 
@@ -123,41 +56,14 @@ export function IssueList() {
         Recent Issues
       </h2>
 
-      <div className="mb-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search issues by title, repository, or status..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page when searching
-            }}
-            className="pl-9 w-full"
-          />
-        </div>
-
-        <Select
-          value={selectedRepo}
-          onValueChange={(value) => {
-            setSelectedRepo(value);
-            setCurrentPage(1); // Reset to first page when changing repository
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a repository" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Repositories</SelectItem>
-            {repositories.map((repo) => (
-              <SelectItem key={repo} value={repo}>
-                {repo}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <IssueFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedRepo={selectedRepo}
+        setSelectedRepo={setSelectedRepo}
+        repositories={repositories}
+        setCurrentPage={setCurrentPage}
+      />
 
       <div className="space-y-4">
         {filteredIssues.length === 0 ? (
@@ -169,33 +75,7 @@ export function IssueList() {
         ) : (
           <>
             {displayedIssues.map((issue) => (
-              <a
-                key={issue.id}
-                href={issue.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                    {issue.title}
-                  </h3>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      issue.status === "open"
-                        ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
-                        : "bg-gray-100 text-gray-800 dark:bg-gray-800/20 dark:text-gray-400"
-                    }`}
-                  >
-                    {issue.status}
-                  </span>
-                </div>
-                <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span>{issue.repository}</span>
-                  <span className="mx-2">•</span>
-                  <span>{issue.created}</span>
-                </div>
-              </a>
+              <IssueCard key={issue.id} {...issue} />
             ))}
             {totalPages > 1 && (
               <Pagination>
