@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 interface Issue {
   id: number;
   title: string;
+  body?: string;
   repository: string;
   status: string;
   created: string;
@@ -45,6 +46,7 @@ export function useIssues() {
             ...repoIssues.map((issue: any) => ({
               id: issue.id,
               title: issue.title,
+              body: issue.body,
               repository: `${owner}/${repo}`,
               status: issue.state,
               created: new Date(issue.created_at).toLocaleDateString(),

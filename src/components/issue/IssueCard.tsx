@@ -1,19 +1,25 @@
 
 interface IssueCardProps {
   title: string;
+  body?: string;
   status: string;
   repository: string;
   created: string;
   html_url: string;
+  onClick: () => void;
 }
 
-export function IssueCard({ title, status, repository, created, html_url }: IssueCardProps) {
+export function IssueCard({
+  title,
+  status,
+  repository,
+  created,
+  onClick
+}: IssueCardProps) {
   return (
-    <a
-      href={html_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+    <button
+      onClick={onClick}
+      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
     >
       <div className="flex items-center justify-between">
         <h3 className="font-medium text-gray-900 dark:text-gray-100">
@@ -34,6 +40,6 @@ export function IssueCard({ title, status, repository, created, html_url }: Issu
         <span className="mx-2">•</span>
         <span>{created}</span>
       </div>
-    </a>
+    </button>
   );
 }
