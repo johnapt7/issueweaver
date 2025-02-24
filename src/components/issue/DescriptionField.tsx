@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { MarkdownEditor } from "@gravity-ui/markdown-editor";
+import { MarkdownEditor as Editor } from "@gravity-ui/markdown-editor";
 import "@gravity-ui/markdown-editor/styles/styles.css";
 
 interface DescriptionFieldProps {
@@ -23,7 +23,7 @@ export function DescriptionField({ value, onChange }: DescriptionFieldProps) {
       <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
         Description
       </label>
-      <MarkdownEditor
+      <Editor
         value={editorValue}
         onChange={handleChange}
         placeholder="Write your issue description in Markdown..."
