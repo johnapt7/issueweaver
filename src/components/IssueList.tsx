@@ -12,6 +12,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Issue {
   id: number;
@@ -29,6 +36,7 @@ export function IssueList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRepo, setSelectedRepo] = useState<string>("all");
 
   useEffect(() => {
     const fetchIssues = async () => {
@@ -81,13 +89,18 @@ export function IssueList() {
     fetchIssues();
   }, []);
 
+  const repositories = [...new Set(issues.map((issue) => issue.repository))];
+
   const filteredIssues = issues.filter((issue) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = 
       issue.title.toLowerCase().includes(searchLower) ||
       issue.repository.toLowerCase().includes(searchLower) ||
-      issue.status.toLowerCase().includes(searchLower)
-    );
+      issue.status.toLowerCase().includes(searchLower);
+    
+    const matchesRepo = selectedRepo === "all" || issue.repository === selectedRepo;
+    
+    return matchesSearch && matchesRepo;
   });
 
   const totalPages = Math.ceil(filteredIssues.length / ISSUES_PER_PAGE);
@@ -110,7 +123,7 @@ export function IssueList() {
         Recent Issues
       </h2>
 
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
           <Input
@@ -124,6 +137,26 @@ export function IssueList() {
             className="pl-9 w-full"
           />
         </div>
+
+        <Select
+          value={selectedRepo}
+          onValueChange={(value) => {
+            setSelectedRepo(value);
+            setCurrentPage(1); // Reset to first page when changing repository
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a repository" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Repositories</SelectItem>
+            {repositories.map((repo) => (
+              <SelectItem key={repo} value={repo}>
+                {repo}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-4">
