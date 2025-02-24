@@ -5,7 +5,7 @@ import { Card } from "@gravity-ui/uikit";
 import { IssueCreator } from "@/components/IssueCreator";
 import { AddReposDialog } from "@/components/AddReposDialog";
 import { useToast } from "@/hooks/use-toast";
-import { GitHubFill } from "@gravity-ui/icons";
+import { Github } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import "@gravity-ui/uikit/styles/styles.css";
 
@@ -45,7 +45,7 @@ export default function Index() {
                 view="action"
                 size="l"
               >
-                <GitHubFill />
+                <Github className="mr-2 h-4 w-4" />
                 Add Repository
               </Button>
             </div>
