@@ -3,19 +3,19 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { DescriptionField } from "./issue/DescriptionField";
 import { Repository } from "@/types/github";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export function IssueCreator() {
   const [title, setTitle] = useState("");
@@ -24,6 +24,7 @@ export function IssueCreator() {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -91,6 +92,7 @@ export function IssueCreator() {
         setTitle("");
         setDescription("");
         setSelectedRepos([]);
+        setOpen(false);
       } else {
         throw new Error("Failed to create any issues");
       }
@@ -113,6 +115,77 @@ export function IssueCreator() {
     }
   };
 
+  const mainContent = (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          Repositories
+        </label>
+        <div className="space-y-2">
+          {repositories.map((repo) => {
+            const repoPath = `${repo.owner}/${repo.repo}`;
+            return (
+              <div key={repoPath} className="flex items-center space-x-2">
+                <Checkbox
+                  id={repoPath}
+                  checked={selectedRepos.includes(repoPath)}
+                  onCheckedChange={(checked) => {
+                    setSelectedRepos(
+                      checked
+                        ? [...selectedRepos, repoPath]
+                        : selectedRepos.filter((r) => r !== repoPath)
+                    );
+                  }}
+                />
+                <label
+                  htmlFor={repoPath}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {repoPath}
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          Title
+        </label>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Issue title"
+          className="w-full"
+        />
+      </div>
+
+      <DescriptionField
+        value={description}
+        onChange={setDescription}
+        isPreview={isPreview}
+        setIsPreview={setIsPreview}
+      />
+
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={submitting || !title || !description || selectedRepos.length === 0}
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Issues...
+            </>
+          ) : (
+            `Create Issue${selectedRepos.length > 1 ? 's' : ''}`
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+
   if (repositories.length === 0) {
     return (
       <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
@@ -124,78 +197,19 @@ export function IssueCreator() {
   }
 
   return (
-    <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
-        Create New Issue
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Repositories
-          </label>
-          <div className="space-y-2">
-            {repositories.map((repo) => {
-              const repoPath = `${repo.owner}/${repo.repo}`;
-              return (
-                <div key={repoPath} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={repoPath}
-                    checked={selectedRepos.includes(repoPath)}
-                    onCheckedChange={(checked) => {
-                      setSelectedRepos(
-                        checked
-                          ? [...selectedRepos, repoPath]
-                          : selectedRepos.filter((r) => r !== repoPath)
-                      );
-                    }}
-                  />
-                  <label
-                    htmlFor={repoPath}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {repoPath}
-                  </label>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Title
-          </label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Issue title"
-            className="w-full"
-          />
-        </div>
-
-        <DescriptionField
-          value={description}
-          onChange={setDescription}
-          isPreview={isPreview}
-          setIsPreview={setIsPreview}
-        />
-
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={submitting || !title || !description || selectedRepos.length === 0}
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Issues...
-              </>
-            ) : (
-              `Create Issue${selectedRepos.length > 1 ? 's' : ''}`
-            )}
-          </Button>
-        </div>
-      </form>
-    </Card>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button size="lg" className="w-full md:w-auto">
+          <PlusCircle className="mr-2 h-5 w-5" />
+          New Issue
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-full md:w-[800px] sm:max-w-full">
+        <SheetHeader className="mb-8">
+          <SheetTitle>Create New Issue</SheetTitle>
+        </SheetHeader>
+        {mainContent}
+      </SheetContent>
+    </Sheet>
   );
 }

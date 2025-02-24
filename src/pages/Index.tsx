@@ -39,17 +39,18 @@ export default function Index() {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Add the repositories you want to manage
               </p>
-              <Button
-                onClick={handleGitHubTokenSubmit}
-                className="bg-[#24292F] hover:bg-[#24292F]/90 text-white"
-              >
-                <Github className="mr-2 h-4 w-4" />
-                Add Repository
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  onClick={handleGitHubTokenSubmit}
+                  className="bg-[#24292F] hover:bg-[#24292F]/90 text-white"
+                >
+                  <Github className="mr-2 h-4 w-4" />
+                  Add Repository
+                </Button>
+                <IssueCreator />
+              </div>
             </div>
           </Card>
-
-          <IssueCreator />
         </div>
       </div>
       <AddReposDialog open={dialogOpen} onOpenChange={setDialogOpen} />
