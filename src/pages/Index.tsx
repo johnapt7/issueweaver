@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "@gravity-ui/uikit";
+import { Card } from "@gravity-ui/uikit";
 import { IssueCreator } from "@/components/IssueCreator";
 import { AddReposDialog } from "@/components/AddReposDialog";
 import { useToast } from "@/hooks/use-toast";
-import { Github } from "lucide-react";
+import { GitHubFill } from "@gravity-ui/icons";
 import { Layout } from "@/components/Layout";
+import "@gravity-ui/uikit/styles/styles.css";
 
 export default function Index() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -31,7 +32,7 @@ export default function Index() {
         </header>
 
         <div className="space-y-8">
-          <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
+          <Card type="container" className="p-6">
             <div className="text-center">
               <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 Welcome to IssueWeaver
@@ -41,9 +42,10 @@ export default function Index() {
               </p>
               <Button
                 onClick={handleGitHubTokenSubmit}
-                className="bg-[#24292F] hover:bg-[#24292F]/90 text-white"
+                view="action"
+                size="l"
               >
-                <Github className="mr-2 h-4 w-4" />
+                <GitHubFill />
                 Add Repository
               </Button>
             </div>
