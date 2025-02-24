@@ -34,7 +34,7 @@ export function DescriptionField({ value, onChange, isPreview, setIsPreview }: D
       </div>
       {isPreview ? (
         <div 
-          className="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background prose dark:prose-invert max-w-none"
+          className="min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background prose dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: md.render(value) }}
         />
       ) : (
@@ -42,7 +42,7 @@ export function DescriptionField({ value, onChange, isPreview, setIsPreview }: D
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Write your issue description in Markdown..."
-          className="min-h-[200px] w-full font-mono"
+          className="min-h-[300px] w-full font-mono"
         />
       )}
     </div>
