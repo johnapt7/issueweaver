@@ -11,6 +11,7 @@ interface IssueDetailProps {
   repository: string;
   created: string;
   html_url: string;
+  projectFields?: { [key: string]: string | number | null };
   onClose: () => void;
 }
 
@@ -21,6 +22,7 @@ export function IssueDetail({
   repository,
   created,
   html_url,
+  projectFields,
   onClose,
 }: IssueDetailProps) {
   return (
@@ -43,6 +45,20 @@ export function IssueDetail({
               {status}
             </span>
           </div>
+          {projectFields && Object.keys(projectFields).length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {Object.entries(projectFields).map(([key, value]) => (
+                value && (
+                  <span 
+                    key={key}
+                    className="inline-flex items-center px-2.5 py-1.5 rounded-md text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  >
+                    {key}: {value}
+                  </span>
+                )
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <Button

@@ -6,6 +6,7 @@ interface IssueCardProps {
   repository: string;
   created: string;
   html_url: string;
+  projectFields?: { [key: string]: string | number | null };
   onClick: () => void;
 }
 
@@ -14,6 +15,7 @@ export function IssueCard({
   status,
   repository,
   created,
+  projectFields,
   onClick
 }: IssueCardProps) {
   return (
@@ -40,6 +42,20 @@ export function IssueCard({
         <span className="mx-2">•</span>
         <span>{created}</span>
       </div>
+      {projectFields && Object.keys(projectFields).length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {Object.entries(projectFields).map(([key, value]) => (
+            value && (
+              <span 
+                key={key}
+                className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              >
+                {key}: {value}
+              </span>
+            )
+          ))}
+        </div>
+      )}
     </button>
   );
 }
