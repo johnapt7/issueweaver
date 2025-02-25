@@ -56,9 +56,9 @@ export function IssueList() {
 
   if (loading) {
     return (
-      <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
+      <Card className="p-6 backdrop-blur-sm bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 border border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-600 dark:text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-violet-600 dark:text-violet-400" />
         </div>
       </Card>
     );
@@ -66,8 +66,8 @@ export function IssueList() {
 
   return (
     <>
-      <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+      <Card className="p-6 backdrop-blur-sm bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 border border-gray-200/50 dark:border-gray-700/50">
+        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
           Recent Issues
         </h2>
 
@@ -97,12 +97,12 @@ export function IssueList() {
                 />
               ))}
               {totalPages > 1 && (
-                <Pagination>
+                <Pagination className="mt-6">
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-violet-50 dark:hover:bg-violet-900/20"
                         aria-disabled={currentPage === 1}
                       />
                     </PaginationItem>
@@ -111,7 +111,11 @@ export function IssueList() {
                         <PaginationLink
                           onClick={() => setCurrentPage(page)}
                           isActive={currentPage === page}
-                          className="cursor-pointer"
+                          className={`cursor-pointer ${
+                            currentPage === page
+                              ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white"
+                              : "hover:bg-violet-50 dark:hover:bg-violet-900/20"
+                          }`}
                         >
                           {page}
                         </PaginationLink>
@@ -120,7 +124,7 @@ export function IssueList() {
                     <PaginationItem>
                       <PaginationNext
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-violet-50 dark:hover:bg-violet-900/20"
                         aria-disabled={currentPage === totalPages}
                       />
                     </PaginationItem>

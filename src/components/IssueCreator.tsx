@@ -40,7 +40,7 @@ export function IssueCreator() {
 
   if (repositories.length === 0) {
     return (
-      <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
+      <Card className="p-6 backdrop-blur-sm bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 border border-gray-200/50 dark:border-gray-700/50">
         <div className="text-center text-gray-600 dark:text-gray-400">
           Add a repository to start creating issues
         </div>
@@ -51,14 +51,19 @@ export function IssueCreator() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button size="lg" className="w-full md:w-auto">
+        <Button size="lg" className="w-full md:w-auto bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
           <PlusCircle className="mr-2 h-5 w-5" />
           New Issue
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-full md:w-[800px] sm:max-w-full">
+      <SheetContent 
+        side="left" 
+        className="w-full md:w-[800px] sm:max-w-full overflow-y-auto bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800"
+      >
         <SheetHeader className="mb-8">
-          <SheetTitle>Create New Issue</SheetTitle>
+          <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            Create New Issue
+          </SheetTitle>
         </SheetHeader>
         <IssueForm
           title={title}
