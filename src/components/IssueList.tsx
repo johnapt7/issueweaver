@@ -28,11 +28,23 @@ export function IssueList() {
 
   const filteredIssues = issues.filter((issue) => {
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
+    
+    // Check basic fields
+    const matchesBasicFields = 
       issue.title.toLowerCase().includes(searchLower) ||
       issue.repository.toLowerCase().includes(searchLower) ||
       issue.status.toLowerCase().includes(searchLower);
     
+    // Check project fields
+    const matchesProjectFields = issue.projectFields
+      ? Object.entries(issue.projectFields).some(([key, value]) => {
+          const fieldValue = String(value).toLowerCase();
+          const fieldKey = key.toLowerCase();
+          return fieldValue.includes(searchLower) || fieldKey.includes(searchLower);
+        })
+      : false;
+    
+    const matchesSearch = matchesBasicFields || matchesProjectFields;
     const matchesRepo = selectedRepo === "all" || issue.repository === selectedRepo;
     
     return matchesSearch && matchesRepo;

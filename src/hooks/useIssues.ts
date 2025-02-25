@@ -10,6 +10,7 @@ interface Issue {
   status: string;
   created: string;
   html_url: string;
+  projectFields?: { [key: string]: string | number | null };
 }
 
 export function useIssues() {
@@ -29,6 +30,87 @@ export function useIssues() {
         const allIssues: Issue[] = [];
 
         for (const { owner, repo } of repos) {
+          // First, get the project information using GraphQL
+          const projectQuery = await fetch('https://api.github.com/graphql', {
+            method: 'POST',
+            headers: {
+              'Authorization': `bearer ${secret}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: `
+                query {
+                  repository(owner: "${owner}", name: "${repo}") {
+                    projectsV2(first: 1) {
+                      nodes {
+                        fields(first: 20) {
+                          nodes {
+                            ... on ProjectV2Field {
+                              name
+                              id
+                            }
+                            ... on ProjectV2SingleSelectField {
+                              name
+                              id
+                              options {
+                                name
+                                id
+                              }
+                            }
+                          }
+                        }
+                        items(first: 100) {
+                          nodes {
+                            content {
+                              ... on Issue {
+                                id
+                                number
+                              }
+                            }
+                            fieldValues(first: 20) {
+                              nodes {
+                                ... on ProjectV2ItemFieldTextValue {
+                                  text
+                                  field { name }
+                                }
+                                ... on ProjectV2ItemFieldNumberValue {
+                                  number
+                                  field { name }
+                                }
+                                ... on ProjectV2ItemFieldSingleSelectValue {
+                                  name
+                                  field { name }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `
+            }),
+          });
+
+          const projectData = await projectQuery.json();
+          const projectFields = new Map();
+          
+          // Create a map of issue numbers to their project field values
+          projectData.data?.repository?.projectsV2?.nodes?.[0]?.items?.nodes?.forEach((item: any) => {
+            const issueNumber = item.content?.number;
+            if (issueNumber) {
+              const fields: { [key: string]: string | number | null } = {};
+              item.fieldValues.nodes.forEach((fieldValue: any) => {
+                if (fieldValue.field?.name) {
+                  fields[fieldValue.field.name] = fieldValue.text || fieldValue.number || fieldValue.name || null;
+                }
+              });
+              projectFields.set(issueNumber, fields);
+            }
+          });
+
+          // Fetch issues using REST API
           const response = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/issues?state=all`,
             {
@@ -51,6 +133,7 @@ export function useIssues() {
               status: issue.state,
               created: new Date(issue.created_at).toLocaleDateString(),
               html_url: issue.html_url,
+              projectFields: projectFields.get(issue.number) || {},
             }))
           );
         }
