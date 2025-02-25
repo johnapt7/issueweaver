@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Plus, Edit } from "lucide-react";
+import { LayoutDashboard, Plus } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,11 +19,6 @@ export function Layout({ children }: LayoutProps) {
       href: "/dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
-    },
-    {
-      href: "/markdown-editor",
-      label: "Markdown Editor",
-      icon: Edit,
     },
   ];
 

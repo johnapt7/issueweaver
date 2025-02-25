@@ -53,14 +53,6 @@ export function useIssues() {
                             id
                           }
                         }
-                        ... on ProjectV2IterationField {
-                          name
-                          id
-                        }
-                        ... on ProjectV2DateField {
-                          name
-                          id
-                        }
                       }
                     }
                     items(first: 100) {
@@ -69,7 +61,6 @@ export function useIssues() {
                           ... on Issue {
                             id
                             number
-                            title
                           }
                         }
                         fieldValues(first: 20) {
@@ -84,14 +75,6 @@ export function useIssues() {
                             }
                             ... on ProjectV2ItemFieldSingleSelectValue {
                               name
-                              field { name }
-                            }
-                            ... on ProjectV2ItemFieldIterationValue {
-                              title
-                              field { name }
-                            }
-                            ... on ProjectV2ItemFieldDateValue {
-                              date
                               field { name }
                             }
                           }
@@ -115,13 +98,7 @@ export function useIssues() {
             const fields: { [key: string]: string | number | null } = {};
             item.fieldValues.nodes.forEach((fieldValue: any) => {
               if (fieldValue.field?.name) {
-                fields[fieldValue.field.name] = 
-                  fieldValue.text || 
-                  fieldValue.number || 
-                  fieldValue.name || 
-                  (fieldValue.date ? new Date(fieldValue.date).toLocaleDateString() : null) ||
-                  fieldValue.title || 
-                  null;
+                fields[fieldValue.field.name] = fieldValue.text || fieldValue.number || fieldValue.name || null;
               }
             });
             projectFields.set(issueNumber, fields);
