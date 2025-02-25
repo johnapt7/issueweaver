@@ -7,6 +7,7 @@ import { AddReposDialog } from "@/components/AddReposDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Github } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { RecentIssuesTable } from "@/components/RecentIssuesTable";
 
 export default function Index() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,6 +52,8 @@ export default function Index() {
               </div>
             </div>
           </Card>
+
+          <RecentIssuesTable />
         </div>
       </div>
       <AddReposDialog open={dialogOpen} onOpenChange={setDialogOpen} />
