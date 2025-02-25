@@ -53,6 +53,14 @@ export function useIssues() {
                             id
                           }
                         }
+                        ... on ProjectV2IterationField {
+                          name
+                          id
+                        }
+                        ... on ProjectV2DateField {
+                          name
+                          id
+                        }
                       }
                     }
                     items(first: 100) {
@@ -61,6 +69,7 @@ export function useIssues() {
                           ... on Issue {
                             id
                             number
+                            title
                           }
                         }
                         fieldValues(first: 20) {
@@ -77,6 +86,14 @@ export function useIssues() {
                               name
                               field { name }
                             }
+                            ... on ProjectV2ItemFieldIterationValue {
+                              title
+                              field { name }
+                            }
+                            ... on ProjectV2ItemFieldDateValue {
+                              date
+                              field { name }
+                            }
                           }
                         }
                       }
@@ -89,6 +106,8 @@ export function useIssues() {
         });
 
         const projectData = await projectQuery.json();
+        console.log('Project Data:', projectData);
+        
         const projectFields = new Map();
         
         // Create a map of issue numbers to their project field values
@@ -98,9 +117,16 @@ export function useIssues() {
             const fields: { [key: string]: string | number | null } = {};
             item.fieldValues.nodes.forEach((fieldValue: any) => {
               if (fieldValue.field?.name) {
-                fields[fieldValue.field.name] = fieldValue.text || fieldValue.number || fieldValue.name || null;
+                fields[fieldValue.field.name] = 
+                  fieldValue.text || 
+                  fieldValue.number || 
+                  fieldValue.name || 
+                  (fieldValue.date ? new Date(fieldValue.date).toLocaleDateString() : null) ||
+                  fieldValue.title || 
+                  null;
               }
             });
+            console.log(`Fields for issue #${issueNumber}:`, fields);
             projectFields.set(issueNumber, fields);
           }
         });
@@ -123,16 +149,20 @@ export function useIssues() {
 
           const repoIssues = await response.json();
           allIssues.push(
-            ...repoIssues.map((issue: any) => ({
-              id: issue.id,
-              title: issue.title,
-              body: issue.body,
-              repository: `${owner}/${repo}`,
-              status: issue.state,
-              created: new Date(issue.created_at).toLocaleDateString(),
-              html_url: issue.html_url,
-              projectFields: projectFields.get(issue.number) || {},
-            }))
+            ...repoIssues.map((issue: any) => {
+              const issueFields = projectFields.get(issue.number) || {};
+              console.log(`Project fields for issue #${issue.number}:`, issueFields);
+              return {
+                id: issue.id,
+                title: issue.title,
+                body: issue.body,
+                repository: `${owner}/${repo}`,
+                status: issue.state,
+                created: new Date(issue.created_at).toLocaleDateString(),
+                html_url: issue.html_url,
+                projectFields: issueFields,
+              };
+            })
           );
         }
 
