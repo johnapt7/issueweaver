@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Plus } from "lucide-react";
+import { LayoutDashboard, Plus, PlayCircle } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +19,11 @@ export function Layout({ children }: LayoutProps) {
       href: "/dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      href: "/planning-poker",
+      label: "Planning Poker",
+      icon: PlayCircle,
     },
   ];
 
