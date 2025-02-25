@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { MarkdownEditor } from "@gravity-ui/markdown-editor";
+import { MarkdownEditor as Editor } from "@gravity-ui/markdown-editor";
 import "@gravity-ui/markdown-editor/dist/bundle.css";
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
@@ -21,7 +21,7 @@ export default function MarkdownEditorPage() {
         </header>
 
         <Card className="p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50">
-          <MarkdownEditor
+          <Editor
             value={content}
             onChange={setContent}
             placeholder="Start writing in markdown..."
