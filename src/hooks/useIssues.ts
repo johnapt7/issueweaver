@@ -106,8 +106,6 @@ export function useIssues() {
         });
 
         const projectData = await projectQuery.json();
-        console.log('Project Data:', projectData);
-        
         const projectFields = new Map();
         
         // Create a map of issue numbers to their project field values
@@ -126,7 +124,6 @@ export function useIssues() {
                   null;
               }
             });
-            console.log(`Fields for issue #${issueNumber}:`, fields);
             projectFields.set(issueNumber, fields);
           }
         });
@@ -149,20 +146,16 @@ export function useIssues() {
 
           const repoIssues = await response.json();
           allIssues.push(
-            ...repoIssues.map((issue: any) => {
-              const issueFields = projectFields.get(issue.number) || {};
-              console.log(`Project fields for issue #${issue.number}:`, issueFields);
-              return {
-                id: issue.id,
-                title: issue.title,
-                body: issue.body,
-                repository: `${owner}/${repo}`,
-                status: issue.state,
-                created: new Date(issue.created_at).toLocaleDateString(),
-                html_url: issue.html_url,
-                projectFields: issueFields,
-              };
-            })
+            ...repoIssues.map((issue: any) => ({
+              id: issue.id,
+              title: issue.title,
+              body: issue.body,
+              repository: `${owner}/${repo}`,
+              status: issue.state,
+              created: new Date(issue.created_at).toLocaleDateString(),
+              html_url: issue.html_url,
+              projectFields: projectFields.get(issue.number) || {},
+            }))
           );
         }
 
