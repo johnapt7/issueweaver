@@ -26,62 +26,56 @@ export function useIssues() {
         
         if (secretError) throw secretError;
 
-        const repos = JSON.parse(localStorage.getItem("repos") || "[]");
-        const allIssues: Issue[] = [];
-
-        for (const { owner, repo } of repos) {
-          // First, get the project information using GraphQL
-          const projectQuery = await fetch('https://api.github.com/graphql', {
-            method: 'POST',
-            headers: {
-              'Authorization': `bearer ${secret}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              query: `
-                query {
-                  repository(owner: "${owner}", name: "${repo}") {
-                    projectsV2(first: 1) {
+        // First, get the project ID
+        const projectQuery = await fetch('https://api.github.com/graphql', {
+          method: 'POST',
+          headers: {
+            'Authorization': `bearer ${secret}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              query {
+                organization(login: "NBCUDTC") {
+                  projectV2(number: 103) {
+                    id
+                    fields(first: 20) {
                       nodes {
-                        fields(first: 20) {
-                          nodes {
-                            ... on ProjectV2Field {
-                              name
-                              id
-                            }
-                            ... on ProjectV2SingleSelectField {
-                              name
-                              id
-                              options {
-                                name
-                                id
-                              }
-                            }
+                        ... on ProjectV2Field {
+                          name
+                          id
+                        }
+                        ... on ProjectV2SingleSelectField {
+                          name
+                          id
+                          options {
+                            name
+                            id
                           }
                         }
-                        items(first: 100) {
+                      }
+                    }
+                    items(first: 100) {
+                      nodes {
+                        content {
+                          ... on Issue {
+                            id
+                            number
+                          }
+                        }
+                        fieldValues(first: 20) {
                           nodes {
-                            content {
-                              ... on Issue {
-                                id
-                                number
-                              }
+                            ... on ProjectV2ItemFieldTextValue {
+                              text
+                              field { name }
                             }
-                            fieldValues(first: 20) {
-                              nodes {
-                                ... on ProjectV2ItemFieldTextValue {
-                                  text
-                                  field { name }
-                                }
-                                ... on ProjectV2ItemFieldNumberValue {
-                                  number
-                                  field { name }
-                                }
-                                ... on ProjectV2ItemFieldSingleSelectValue {
-                                  name
-                                  field { name }
-                                }
-                              }
+                            ... on ProjectV2ItemFieldNumberValue {
+                              number
+                              field { name }
+                            }
+                            ... on ProjectV2ItemFieldSingleSelectValue {
+                              name
+                              field { name }
                             }
                           }
                         }
@@ -89,28 +83,32 @@ export function useIssues() {
                     }
                   }
                 }
-              `
-            }),
-          });
+              }
+            `
+          }),
+        });
 
-          const projectData = await projectQuery.json();
-          const projectFields = new Map();
-          
-          // Create a map of issue numbers to their project field values
-          projectData.data?.repository?.projectsV2?.nodes?.[0]?.items?.nodes?.forEach((item: any) => {
-            const issueNumber = item.content?.number;
-            if (issueNumber) {
-              const fields: { [key: string]: string | number | null } = {};
-              item.fieldValues.nodes.forEach((fieldValue: any) => {
-                if (fieldValue.field?.name) {
-                  fields[fieldValue.field.name] = fieldValue.text || fieldValue.number || fieldValue.name || null;
-                }
-              });
-              projectFields.set(issueNumber, fields);
-            }
-          });
+        const projectData = await projectQuery.json();
+        const projectFields = new Map();
+        
+        // Create a map of issue numbers to their project field values
+        projectData.data?.organization?.projectV2?.items?.nodes?.forEach((item: any) => {
+          const issueNumber = item.content?.number;
+          if (issueNumber) {
+            const fields: { [key: string]: string | number | null } = {};
+            item.fieldValues.nodes.forEach((fieldValue: any) => {
+              if (fieldValue.field?.name) {
+                fields[fieldValue.field.name] = fieldValue.text || fieldValue.number || fieldValue.name || null;
+              }
+            });
+            projectFields.set(issueNumber, fields);
+          }
+        });
 
-          // Fetch issues using REST API
+        const repos = JSON.parse(localStorage.getItem("repos") || "[]");
+        const allIssues: Issue[] = [];
+
+        for (const { owner, repo } of repos) {
           const response = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/issues?state=all`,
             {
