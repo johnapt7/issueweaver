@@ -21,6 +21,7 @@ interface Issue {
 
 export default function PlanningPoker() {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -57,16 +58,23 @@ export default function PlanningPoker() {
           <Card className="p-6">
             {selectedIssue ? (
               <div className="space-y-6">
-                <IssueDetail
-                  title={selectedIssue.title}
-                  body={selectedIssue.body}
-                  status={selectedIssue.status}
-                  repository={selectedIssue.repository}
-                  created={selectedIssue.created}
-                  html_url={selectedIssue.html_url}
-                  projectFields={selectedIssue.projectFields}
-                  onClose={() => setSelectedIssue(null)}
-                />
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      {selectedIssue.title}
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {selectedIssue.repository}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDetail(true)}
+                  >
+                    View Details
+                  </Button>
+                </div>
                 <VotingArea issueId={selectedIssue.html_url} />
               </div>
             ) : (
@@ -80,6 +88,13 @@ export default function PlanningPoker() {
             <IssueSelector onIssueSelect={handleIssueSelect} />
           </aside>
         </div>
+
+        {showDetail && selectedIssue && (
+          <IssueDetail
+            {...selectedIssue}
+            onClose={() => setShowDetail(false)}
+          />
+        )}
       </div>
     </Layout>
   );
