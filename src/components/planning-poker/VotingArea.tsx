@@ -17,6 +17,9 @@ type Vote = {
 
 const POINTS = [1, 2, 3, 5, 8, 13, 21];
 
+// Generate a stable user ID for the session
+const SESSION_USER_ID = crypto.randomUUID();
+
 export function VotingArea({ issueId }: VotingAreaProps) {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
@@ -24,7 +27,6 @@ export function VotingArea({ issueId }: VotingAreaProps) {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const roomId = searchParams.get("room") || "default";
-  const userId = crypto.randomUUID(); // In a real app, this would come from authentication
 
   useEffect(() => {
     const channel = supabase.channel(`room_${roomId}`)
@@ -39,7 +41,7 @@ export function VotingArea({ issueId }: VotingAreaProps) {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
-            user: userId,
+            user: SESSION_USER_ID,
             vote: selectedPoint,
             online_at: new Date().toISOString(),
           });
@@ -49,7 +51,7 @@ export function VotingArea({ issueId }: VotingAreaProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomId, userId, selectedPoint]);
+  }, [roomId, selectedPoint]);
 
   const handleVote = async (point: number) => {
     setSelectedPoint(point);
