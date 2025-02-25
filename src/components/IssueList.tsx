@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import {
@@ -23,6 +22,17 @@ export function IssueList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<string>("all");
   const [selectedIssue, setSelectedIssue] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for selected repository from tiles
+    const selectedRepo = localStorage.getItem("selectedRepo");
+    if (selectedRepo) {
+      const repo = JSON.parse(selectedRepo);
+      setSelectedRepo(`${repo.owner}/${repo.repo}`);
+      // Clear the selection after applying the filter
+      localStorage.removeItem("selectedRepo");
+    }
+  }, []);
 
   const repositories = [...new Set(issues.map((issue) => issue.repository))];
 
